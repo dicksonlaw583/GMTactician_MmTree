@@ -12,7 +12,7 @@ if (is_struct(tree) && !ready) {
 	do {
 		tree.evaluateTick();
 	} until (++ticksThisStep >= ticksPerStep || tree.ready);
-	progress = tree.progress;
+	progress = tree.getProgress();
 	// If done
 	if (tree.ready) {
 		// Show that I'm done

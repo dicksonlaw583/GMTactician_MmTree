@@ -10,19 +10,30 @@ function MmTree(_state, _maxDepth) constructor {
 	
 	static evaluateStart = function() {
 		root = new MmNode(undefined, polarity(state.getCurrentPlayer()), undefined);
-		rootMemo = state.getMemo();
+		state.readMemo(rootMemo);
 		currentNode = root;
-		currentNodeChildren = currentNode.children;
-		availableMoves = is_undefined(root.polarity) ? presample() : state.getMoves();
+		currentNode.children = [];
+		availableMoves = is_undefined(root.polarity) ? presample() : expand();
+		stackPointer = -1;
+		currentDepth = maxDepth;
+		currentChildNum = 0;
+		alpha = -infinity;
+		beta = infinity;
+		stackdir = true;
+		isFinal = state.isFinal();
+		ready = isFinal;
+		progressTotal = isFinal ? 1 : 0;
+		progressWeight = 1;
 	};
 	
 	static evaluateTick = function() {
+		//show_debug_message((stackdir ? "DOWN " : "UP ") + string(state.board) + " (" + string(array_length(root.children)) + ")");
 		// Downwards
 		if (stackdir) {
 			// If final or max depth reached:
 			if (currentDepth == 0 || isFinal) {
 				// Give the appropriate reward
-				currentNode.value = isFinal ? interpret(state.getPlayoutResult(), state) : heuristic(state);
+				currentNode.value = isFinal ? interpret(state.getPlayoutResult()) : heuristic();
 				// Go back upwards
 				stackdir = false;
 				isFinal = false;
@@ -30,46 +41,46 @@ function MmTree(_state, _maxDepth) constructor {
 			// Not final and has depth to spare, expand
 			else {
 				// Create a stack frame remembering the current state
-				stack[@++stackPointer] = new MmStackFrame(
-					state.getMemo(),
-					currentNode,
-					availableMoves,
-					currentChildNum,
-					currentDepth--,
-					alpha,
-					beta
-				);
+				var _currentStackFrame = stack[++stackPointer];
+				_currentStackFrame.memo = state.getMemo();
+				_currentStackFrame.node = currentNode;
+				_currentStackFrame.moves = availableMoves;
+				_currentStackFrame.currentChildNum = currentChildNum;
+				_currentStackFrame.currentDepth = currentDepth--;
+				_currentStackFrame.alpha = alpha;
+				_currentStackFrame.beta = beta;
+				_currentStackFrame.progressTotal = progressTotal;
+				_currentStackFrame.progressWeight = progressWeight;
 				// Apply current move
 				var _currentMove, _currentWeight;
-				if (is_undefined(currentNode)) {
-					_currentMove = availableMoves[0][currentChildNum];
-					_currentWeight = availableMoves[1][currentChildNum];
+				if (is_undefined(currentNode.polarity)) {
+					_currentMove = availableMoves[currentChildNum][0];
+					_currentWeight = availableMoves[currentChildNum][1];
 				} else {
 					_currentMove = availableMoves[currentChildNum];
 					_currentWeight = undefined;
 				}
 				state.applyMove(_currentMove);
 				// Expand first move
-				currentNodeChildren = currentNode.children;
-				if (is_undefined(currentNodeChildren)) {
-					currentNodeChildren = [];
-					currentNode.children = currentNodeChildren;
-				}
-				currentNodeChildren[@currentChildNum] = new MmNode(
+				currentNode.children[@currentChildNum] = new MmNode(
 					_currentMove,
 					polarity(state.getCurrentPlayer()),
 					_currentWeight
 				);
+				// Increment progress
+		        progressWeight /= array_length(availableMoves);
+		        progressTotal += progressWeight*currentChildNum;
 				// Focus to current child
-				currentNode = currentNodeChildren[currentChildNum];
+				currentNode = currentNode.children[currentChildNum];
 				// Determine if final
 				isFinal = state.isFinal();
 				if (isFinal) {
 					availableMoves = undefined;
+					currentNode.children = undefined;
 				} else if (is_undefined(currentNode.polarity)) {
 					availableMoves = presample();
 				} else {
-					availableMoves = state.getMoves();
+					availableMoves = expand();
 				}
 				currentChildNum = 0;
 				alpha = -infinity;
@@ -80,77 +91,78 @@ function MmTree(_state, _maxDepth) constructor {
 		else {
 			// Unpack the stack frame
 			var _currentStackFrame = stack[stackPointer--];
-			//(_memo, _node, _moves, _currentChildNum, _currentDepth, _alpha, _beta)
 			currentNode = _currentStackFrame.node;
 			availableMoves = _currentStackFrame.moves;
-			currentDepth = _currentStackFrame.currentDepth;
-			currentNodeChildren = currentNode.children;
 			currentChildNum = _currentStackFrame.currentChildNum;
+			currentDepth = _currentStackFrame.currentDepth;
 			alpha = _currentStackFrame.alpha;
 			beta = _currentStackFrame.beta;
-			var _currentChild = currentNodeChildren[currentChildNum];
+			progressTotal = _currentStackFrame.progressTotal;
+			progressWeight = _currentStackFrame.progressWeight;
+			// Get children and moves info
+			var _currentChild = currentNode.children[currentChildNum];
 			var _currentChildValue = _currentChild.value;
-			var _availableMovesCount = 0;
-			// If it is a chance node
+			var _availableMovesCount = array_length(availableMoves);
+			// If it is a chance node, don't process alpha-beta
 			var _currentNodePolarity = currentNode.polarity;
 			if (is_undefined(_currentNodePolarity)) {
-				// Correct moves count to use subarray
-				_availableMovesCount = array_length(availableMoves[0]);
 			}
 			// If it is a max node
 			else if (_currentNodePolarity) {
-				var _currentNodeValue = currentNode.value;
-				if (is_undefined(_currentNodeValue) || _currentChildValue > _currentNodeValue) {
+				if (is_undefined(currentNode.value) || _currentChildValue > currentNode.value) {
 					currentNode.value = _currentChildValue;
 				}
 				// Update node value and frame alpha
 				if (_currentChildValue > alpha) {
 					alpha = _currentChildValue;
 				}
-				_availableMovesCount = array_length(availableMoves);
 			}
 			// If it is a min node
 			else {
-				var _currentNodeValue = currentNode.value
-				if (is_undefined(_currentNodeValue) || _currentChildValue < _currentNodeValue) {
+				if (is_undefined(currentNode.value) || _currentChildValue < currentNode.value) {
 					currentNode.value = _currentChildValue;
 				}
 				// Update node value and frame beta
-				if (_currentChildValue > alpha) {
+				if (_currentChildValue < beta) {
 					beta = _currentChildValue;
 				}
-				_availableMovesCount = array_length(availableMoves);
 			}
-			// If alpha-beta cutoff met or no more children
-			if ((alpha > beta) || currentChildNum+1 == _availableMovesCount) {
+			// If alpha-beta unmet and more children
+			if (alpha < beta && ++currentChildNum < _availableMovesCount) {
+				// Read current frame's memo
+				state.readMemo(_currentStackFrame.memo);
+				// Change direction to downwards
+				stackdir = true;
+			}
+			// No more in the subtree to evaluate
+			else {
 				// Chance nodes update their value only after all of its children have been expanded
 				if (is_undefined(_currentNodePolarity)) {
 					var _chanceNodeSum = 0;
 					var _chanceNodeChild;
-					for (var i = array_length(currentNodeChildren)-1; i >= 0; --i) {
-						_chanceNodeChild = currentNodeChildren[i];
+					for (var i = array_length(currentNode.children)-1; i >= 0; --i) {
+						_chanceNodeChild = currentNode.children[i];
 						_chanceNodeSum += _chanceNodeChild.weight*_chanceNodeChild.value;
 					}
 					currentNode.value = _chanceNodeSum;
 				}
 				// Keep going up (node code required)
 			}
-			// Still more to evaluate
-			else {
-				// Read current frame's memo
-				state.readMemo(_currentStackFrame.memo);
-				// Schedule to apply the next available move
-				++currentChildNum;
-				// Change direction to downwards
-				stackdir = true;
-			}
-			// Take out the stack frame
-			delete _currentStackFrame;
+			// Kill the stack's heavy links
+			_currentStackFrame.node = undefined;
+			_currentStackFrame.memo = undefined;
 		}
 		// Done when the stack is moving upwards and it is empty
 		ready = stackPointer < 0 && !stackdir;
 		if (ready) {
 			state.readMemo(rootMemo);
+			currentNode = undefined;
+			stackPointer = -1;
+			currentDepth = maxDepth;
+			currentChildNum = 0;
+			stackdir = true;
+			progressTotal = 1;
+			progressWeight = 1;
 		}
 		return ready;
 	};
@@ -158,7 +170,8 @@ function MmTree(_state, _maxDepth) constructor {
 	///@func evaluateInBackground(<callback>)
 	///@param <callback> (Optional) A method or script to run when the evaluation completes. It will be passed the best chosen move, and the daemon will self-destruct if this is provided.
 	///@desc Evaluate this Minimax tree in the background. Return the instance ID of the daemon.
-	static evaluateInBackground = function(_callback) {
+	static evaluateInBackground = function() {
+		var _callback = (argument_count > 0) ? argument[0] : undefined;
 		var _id;
 		var _tree = self;
 		evaluateStart();
@@ -168,6 +181,12 @@ function MmTree(_state, _maxDepth) constructor {
 			_id = id;
 		}
 		return _id;
+	};
+	
+	///@func getProgress()
+	///@desc Return the evaluation progress of this tree, in [0, 1] range.
+	static getProgress = function() {
+		return progressTotal + progressWeight*currentChildNum/max(1, is_array(availableMoves) ? array_length(availableMoves) : 0);
 	};
 	#endregion
 	
@@ -266,6 +285,10 @@ function MmTree(_state, _maxDepth) constructor {
 	#endregion
 	
 	#region User configured
+	static expand = function() {
+		return state.getMoves();
+	};
+	
 	static polarity = function(_player) {
 		return _player;
 	};
@@ -287,28 +310,29 @@ function MmTree(_state, _maxDepth) constructor {
 	#endregion
 	
 	#region Basic properties
+	state = _state.clone();
 	root = undefined;
-	rootMemo = undefined;
+	rootMemo = state.getMemo();
 	maxDepth = _maxDepth;
 	#endregion
 	
-	#region Evaluation state //?
-	state = _state;
-	
-	stack = [];
+	#region Evaluation state
+	stack = array_create(maxDepth);
+	for (var i = maxDepth-1; i >= 0; --i) {
+		stack[@i] = new MmStackFrame();
+	}
 	stackPointer = -1;
 	currentNode = undefined;
 	availableMoves = undefined;
 	currentDepth = maxDepth;
-	currentNodeChildren = undefined;
 	currentChildNum = 0;
-	alpha = undefined;
-	beta = undefined;
+	alpha = -infinity;
+	beta = infinity;
 	stackdir = true;
-	
-	isFinal = state.isFinal();
-	ready = isFinal;
-	progress = isFinal ? 1: 0;
+	isFinal = false;
+	ready = false;
+	progressTotal = 0;
+	progressWeight = 1;
 	#endregion
 }
 
@@ -316,18 +340,18 @@ function MmNode(_move, _polarity, _weight) constructor {
 	move = _move;
 	polarity = _polarity;
 	value = undefined;
-	children = undefined;
+	children = [];
 	weight = _weight;
 }
 
-function MmStackFrame(_memo, _node, _moves, _currentChildNum, _currentDepth, _alpha, _beta) constructor {
-	memo = _memo;
-	node = _node;
-	moves = _moves;
-	currentChildNum = _currentChildNum;
-	currentDepth = _currentDepth;
-	alpha = _alpha;
-	beta = _beta;
+function MmStackFrame() constructor {
+	memo = undefined;
+	node = undefined;
+	moves = undefined;
+	currentChildNum = 0;
+	currentDepth = 0;
+	alpha = -infinity;
+	beta = infinity;
 	progressTotal = 0;
-	progressWeight = 0;
+	progressWeight = 1;
 }

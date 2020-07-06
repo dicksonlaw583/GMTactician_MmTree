@@ -6,6 +6,7 @@
     {"id":{"name":"GMTactician_mm_classes","path":"scripts/GMTactician_mm_classes/GMTactician_mm_classes.yy",},"order":0,},
     {"id":{"name":"gmta_mm_test_all","path":"scripts/gmta_mm_test_all/gmta_mm_test_all.yy",},"order":0,},
     {"id":{"name":"__GMA_BREAKPOINT__","path":"scripts/__GMA_BREAKPOINT__/__GMA_BREAKPOINT__.yy",},"order":1,},
+    {"id":{"name":"obj_gmtactician_mm_tester","path":"objects/obj_gmtactician_mm_tester/obj_gmtactician_mm_tester.yy",},"order":1,},
     {"id":{"name":"rmTest","path":"rooms/rmTest/rmTest.yy",},"order":14,},
   ],
   "Options": [
