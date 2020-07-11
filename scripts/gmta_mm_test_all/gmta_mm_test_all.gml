@@ -5,6 +5,7 @@ function gmta_mm_test_all() {
 	
 	/** vv Place tests here vv **/
 	// Synchronous evaluate
+	gc_enable(false);
 	var state = new TicTacToeState([
 		-1, -1, 0,
 		-1, -1, -1,
@@ -13,8 +14,8 @@ function gmta_mm_test_all() {
 	]);
 	var mm = new TicTacToeMmTree(state, 6);
 	mm.evaluate();
-	assert_equal(mm.getBestMove(), 4, "Minimax synchronous evaluate failed to find best move!");
 	delete mm;
+	gc_collect();
 	/** ^^ Place tests here ^^ **/
 	
 	var timeB = current_time;
