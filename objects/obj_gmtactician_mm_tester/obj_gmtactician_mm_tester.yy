@@ -19,7 +19,6 @@
   "physicsShapePoints": [],
   "eventList": [
     {"isDnD":false,"eventNum":0,"eventType":0,"collisionObjectId":null,"parent":{"name":"obj_gmtactician_mm_tester","path":"objects/obj_gmtactician_mm_tester/obj_gmtactician_mm_tester.yy",},"resourceVersion":"1.0","name":"","tags":[],"resourceType":"GMEvent",},
-    {"isDnD":false,"eventNum":0,"eventType":3,"collisionObjectId":null,"parent":{"name":"obj_gmtactician_mm_tester","path":"objects/obj_gmtactician_mm_tester/obj_gmtactician_mm_tester.yy",},"resourceVersion":"1.0","name":"","tags":[],"resourceType":"GMEvent",},
     {"isDnD":false,"eventNum":0,"eventType":8,"collisionObjectId":null,"parent":{"name":"obj_gmtactician_mm_tester","path":"objects/obj_gmtactician_mm_tester/obj_gmtactician_mm_tester.yy",},"resourceVersion":"1.0","name":"","tags":[],"resourceType":"GMEvent",},
   ],
   "properties": [],
