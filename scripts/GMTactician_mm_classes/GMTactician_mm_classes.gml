@@ -302,6 +302,33 @@ function MmTree(_state, _maxDepth) constructor {
 	};
 	
 	static presample = function() {
+		// Set up accumulators
+		var countMap = ds_map_create();
+		var _moves = [];
+		var _moveStrings = [];
+		var _movesN = 0;
+		// Sample settings.presampleN times
+		repeat (settings.presampleN) {
+			// Get a random move
+			var _move = state.getRandom();
+			var _moveString = string(_move);
+			// Log it
+			if (ds_map_exists(countMap, _moveString)) {
+				countMap[? _moveString] += 1;
+			} else {
+				countMap[? _moveString] = 1;
+				_moveStrings[@_movesN] = _moveString;
+				_moves[@_movesN] = _move;
+				++_movesN;
+			}
+		}
+		// Generate the result
+		var _results = array_create(_movesN);
+		for (var i = _movesN-1; i >= 0; --i) {
+			_results[@i] = [_moves[i], countMap[? _moveStrings[i]]/settings.presampleN];
+		}
+		ds_map_destroy(countMap);
+		return _results;
 	};
 	
 	settings = {
