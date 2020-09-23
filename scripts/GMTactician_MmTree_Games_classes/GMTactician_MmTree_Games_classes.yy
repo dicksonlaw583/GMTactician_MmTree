@@ -6,7 +6,7 @@
     "path": "folders/Libraries_test/GMTactician_MmTree_test.yy",
   },
   "resourceVersion": "1.0",
-  "name": "gmta_mm_test_all",
+  "name": "GMTactician_MmTree_Games_classes",
   "tags": [],
   "resourceType": "GMScript",
 }

@@ -26,7 +26,7 @@
   "overriddenProperties": [],
   "parent": {
     "name": "GMTactician_MmTree_test",
-    "path": "folders/GMTactician_MmTree_test.yy",
+    "path": "folders/Libraries_test/GMTactician_MmTree_test.yy",
   },
   "resourceVersion": "1.0",
   "name": "obj_gmtactician_mm_tester",

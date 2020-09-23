@@ -34,7 +34,7 @@
   "overriddenProperties": [],
   "parent": {
     "name": "GMTactician_MmTree",
-    "path": "folders/GMTactician_MmTree.yy",
+    "path": "folders/Libraries/GMTactician_MmTree.yy",
   },
   "resourceVersion": "1.0",
   "name": "__obj_gmtactician_mm_daemon__",

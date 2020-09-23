@@ -43,5 +43,5 @@ function gmta_mm_test_all() {
 	
 	var timeB = current_time;
 	show_debug_message("Minimax tests completed in " + string(timeB-timeA) + "ms.");
-	return global.__test_fails__;
+	return global.__test_fails__ == 0;
 }

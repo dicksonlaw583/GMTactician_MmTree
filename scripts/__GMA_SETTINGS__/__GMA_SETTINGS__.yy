@@ -2,11 +2,11 @@
   "isDnD": false,
   "isCompatibility": false,
   "parent": {
-    "name": "GMTactician_Games",
-    "path": "folders/Libraries/GMTactician_Games.yy",
+    "name": "GMAssert",
+    "path": "folders/Libraries_config/GMAssert.yy",
   },
   "resourceVersion": "1.0",
-  "name": "IntransitiveDice_classes",
+  "name": "__GMA_SETTINGS__",
   "tags": [],
   "resourceType": "GMScript",
 }
