@@ -332,7 +332,7 @@ function MmTree(_state, _maxDepth) constructor {
 	};
 	
 	settings = {
-		presampleN: 60
+		presampleN: MINIMAX_DEFAULT_PRESAMPLE_N
 	};
 	#endregion
 	
