@@ -1,6 +1,11 @@
-
+///@func MmTree(state, maxDepth)
+///@param {State} state The State struct to root at
+///@param {int} maxDepth The maximum depth to which to expand this tree
+///@desc A Minimax Tree --- Developers should inherit off this and optionally configure the prefabs
 function MmTree(_state, _maxDepth) constructor {
 	#region Evaluation
+	///@func evaluate()
+	///@desc Expand this Minimax Tree up to the preset maximum depth
 	static evaluate = function() {
 		evaluateStart();
 		while (!ready) {
@@ -8,6 +13,8 @@ function MmTree(_state, _maxDepth) constructor {
 		}
 	};
 	
+	///@func evaluateStart()
+	///@desc Reset the Minimax Tree's evaluation state.
 	static evaluateStart = function() {
 		root = new MmNode(undefined, polarity(state.getCurrentPlayer()), undefined);
 		state.readMemo(rootMemo);
@@ -26,8 +33,9 @@ function MmTree(_state, _maxDepth) constructor {
 		progressWeight = 1;
 	};
 	
+	///@func evaluateTick()
+	///@desc Evaluate one tick of the expansion process, and return whether the process is done.
 	static evaluateTick = function() {
-		//show_debug_message((stackdir ? "DOWN " : "UP ") + string(state.board) + " (" + string(array_length(root.children)) + ")");
 		// Downwards
 		if (stackdir) {
 			// If final or max depth reached:
@@ -168,7 +176,7 @@ function MmTree(_state, _maxDepth) constructor {
 	};
 	
 	///@func evaluateInBackground(<callback>)
-	///@param <callback> (Optional) A method or script to run when the evaluation completes. It will be passed the best chosen move, and the daemon will self-destruct if this is provided.
+	///@param {method} <callback> (Optional) A method or script to run when the evaluation completes. It will be passed the best chosen move, and the daemon will self-destruct if this is provided.
 	///@desc Evaluate this Minimax tree in the background. Return the instance ID of the daemon.
 	static evaluateInBackground = function() {
 		var _callback = (argument_count > 0) ? argument[0] : undefined;
@@ -191,6 +199,9 @@ function MmTree(_state, _maxDepth) constructor {
 	#endregion
 	
 	#region Get moves
+	///@func _getBestChild(node)
+	///@param {MmNode} node
+	///@desc Return the best child node of the given node.
 	static _getBestChild = function(_node) {
 		var _bestNode = undefined;
 		var _rootPolarity = _node.polarity;
@@ -218,7 +229,7 @@ function MmTree(_state, _maxDepth) constructor {
 	};
 	
 	///@func getBestMoveSequence(<n>)
-	///@param <n> (Optional) Maximum number of moves after the root state to read
+	///@param {int|undefined} <n> (Optional) Maximum number of moves after the root state to read
 	///@desc Return an array of moves that the Minimax tree believes is optimal for all players.
 	static getBestMoveSequence = function(_n) {
 		if (is_undefined(_n)) {
@@ -237,7 +248,7 @@ function MmTree(_state, _maxDepth) constructor {
 	};
 	
 	///@func getRankedMoves(<n>)
-	///@param <n> (Optional) Maximum number of different moves to consider
+	///@param {int|undefined} <n> (Optional) Maximum number of different moves to consider
 	///@desc Return an array of moves, ranked top-to-bottom by how good the Minimax tree thinks it is
 	static getRankedMoves = function(_n) {
 		var _children = root.children;
@@ -261,7 +272,7 @@ function MmTree(_state, _maxDepth) constructor {
 	};
 	
 	///@func getRankedMovesVerbose(<n>)
-	///@param <n> (Optional) Maximum number of different moves to consider
+	///@param {int|undefined} <n> (Optional) Maximum number of different moves to consider
 	///@desc Return a 2D array of moves and associated properties; each row is [<move>, <weight>]
 	static getRankedMovesVerbose = function(_n) {
 		var _children = root.children;
@@ -285,22 +296,34 @@ function MmTree(_state, _maxDepth) constructor {
 	#endregion
 	
 	#region User configured
+	///@func expand()
+	///@desc (Overridable) Return an array of moves to expand from the current internal state.
 	static expand = function() {
 		return state.getMoves();
 	};
 	
+	///@func polarity(player)
+	///@param {Player} player
+	///@desc (Overridable) Return a falsy value if the player is minimizing, a truthy value if the player is maximizing.
 	static polarity = function(_player) {
 		return _player;
 	};
 	
+	///@func heuristic()
+	///@desc (Overridable) Return a heuristic score of the current internal state.
 	static heuristic = function() {
 		return interpret(state.getPlayoutResult());
 	};
 	
+	///@func interpret(playoutResult)
+	///@param {PlayoutResult} playoutResult
+	///@desc (Overridable) Interpret the given playout result and return a score.
 	static interpret = function (_playoutResult) {
 		return _playoutResult;
 	};
 	
+	///@func presample()
+	///@desc (Overridable) Run state.getRandom() settigs.presampleN times, then return an array of [Move m, real weight] tuples.
 	static presample = function() {
 		// Set up accumulators
 		var countMap = ds_map_create();
@@ -363,6 +386,11 @@ function MmTree(_state, _maxDepth) constructor {
 	#endregion
 }
 
+///@func MmNode(move, polarity, weight)
+///@param {Move} move The move to make to arrive at this node
+///@param {int|bool|undefined} polarity Whether this is a minimizing node (falsy), maximizing node (truthy) or random node (undefined)
+///@param {real|undefined} weight The weight of the node
+///@desc A Minimax tree node
 function MmNode(_move, _polarity, _weight) constructor {
 	move = _move;
 	polarity = _polarity;
@@ -371,6 +399,8 @@ function MmNode(_move, _polarity, _weight) constructor {
 	weight = _weight;
 }
 
+///@func MmStackFrame()
+///@desc A snapshot of the evaluation state of a Minimax tree
 function MmStackFrame() constructor {
 	memo = undefined;
 	node = undefined;
