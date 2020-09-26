@@ -5,7 +5,7 @@
 function MmTree(_state, _maxDepth) constructor {
 	#region Evaluation
 	///@func evaluate()
-	///@desc Expand this Minimax Tree up to the preset maximum depth
+	///@desc Evaluate this Minimax Tree up to the preset maximum depth
 	static evaluate = function() {
 		evaluateStart();
 		while (!ready) {
