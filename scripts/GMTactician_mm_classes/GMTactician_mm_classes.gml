@@ -222,7 +222,7 @@ function MmTree(_state, _maxDepth) constructor {
 	};
 	
 	///@func getBestMove()
-	///@desc Return the move that the Minimax tree thinks is the best (i.e. most visited).
+	///@desc Return the move that the Minimax tree thinks is the best (highest score if max is to play, lowest score if min is to play).
 	static getBestMove = function() {
 		var _bestNode = _getBestChild(root);
 		return is_undefined(_bestNode) ? undefined : _bestNode.move;
@@ -273,7 +273,7 @@ function MmTree(_state, _maxDepth) constructor {
 	
 	///@func getRankedMovesVerbose(<n>)
 	///@param {int|undefined} <n> (Optional) Maximum number of different moves to consider
-	///@desc Return a 2D array of moves and associated properties; each row is [<move>, <weight>]
+	///@desc Return a 2D array of moves and associated properties; each row is [<move>, <score>]
 	static getRankedMovesVerbose = function(_n) {
 		var _children = root.children;
 		if (is_undefined(_children)) return [];
@@ -304,7 +304,7 @@ function MmTree(_state, _maxDepth) constructor {
 	
 	///@func polarity(player)
 	///@param {Player} player
-	///@desc (Overridable) Return a falsy value if the player is minimizing, a truthy value if the player is maximizing.
+	///@desc (Overridable) Return a falsy value if the player is minimizing, a truthy value if the player is maximizing, undefined if the player is randomizing.
 	static polarity = function(_player) {
 		return _player;
 	};
@@ -323,7 +323,7 @@ function MmTree(_state, _maxDepth) constructor {
 	};
 	
 	///@func presample()
-	///@desc (Overridable) Run state.getRandom() settigs.presampleN times, then return an array of [Move m, real weight] tuples.
+	///@desc (Overridable) Run state.getRandom() settings.presampleN times, then return an array of [Move m, real weight] tuples.
 	static presample = function() {
 		// Set up accumulators
 		var countMap = ds_map_create();
@@ -356,6 +356,23 @@ function MmTree(_state, _maxDepth) constructor {
 	
 	settings = {
 		presampleN: MINIMAX_DEFAULT_PRESAMPLE_N
+	};
+	#endregion
+	
+	#region Alternative Prefabs
+	///@func expandFrac()
+	///@desc Return settings.expandFrac of the array of moves to explore. Should be between 0-1.
+	static expandFrac = function() {
+		var _moves = state.getMoves();
+		var _movesN = array_length(_moves);
+		for (var i = _movesN-1; i >= 1; --i) {
+			var j = irandom(i);
+			var _temp = _moves[i];
+			_moves[@i] = _moves[j];
+			_moves[@j] = _temp;
+		}
+		array_resize(_moves, ceil(settings.expandFrac*_movesN));
+		return _moves;
 	};
 	#endregion
 	
