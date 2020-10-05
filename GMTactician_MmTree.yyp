@@ -32,8 +32,8 @@
     "name": "Default",
     "children": [],
   },
-  "RoomOrder": [
-    {"name":"rm_gmtactician_minimax_test","path":"rooms/rm_gmtactician_minimax_test/rm_gmtactician_minimax_test.yy",},
+  "RoomOrderNodes": [
+    {"roomId":{"name":"rm_gmtactician_minimax_test","path":"rooms/rm_gmtactician_minimax_test/rm_gmtactician_minimax_test.yy",},},
   ],
   "Folders": [
     {"folderPath":"folders/Libraries/GMTactician_MmTree.yy","order":2,"resourceVersion":"1.0","name":"GMTactician_MmTree","tags":[],"resourceType":"GMFolder",},
@@ -54,9 +54,9 @@
   ],
   "IncludedFiles": [],
   "MetaData": {
-    "IDEVersion": "2.3.0.529",
+    "IDEVersion": "23.1.1.193",
   },
-  "resourceVersion": "1.3",
+  "resourceVersion": "1.4",
   "name": "GMTactician_MmTree",
   "tags": [],
   "resourceType": "GMProject",
