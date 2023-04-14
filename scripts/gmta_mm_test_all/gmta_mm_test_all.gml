@@ -51,7 +51,6 @@ function gmta_mm_test_all() {
 	state.applyMove(1);
 	mm = new IntransitiveDiceMmTree(state, 5);
 	mm.evaluate();
-	show_message(mm.getRankedMovesVerbose());
 	assert_equal(mm.getBestMove(), 0, "Minimax synchronous evaluate failed to find best move against Intransitive Dice 1!");
 	assert_equal(mm.getBestMoveSequence()[0], 0, "Minimax synchronous evaluate failed to find best move sequence against Intransitive Dice 1!");
 	assert_equal(mm.getRankedMoves(), [0, 2], "Minimax synchronous evaluate failed to find ranked moves against Intransitive Dice 1!");
