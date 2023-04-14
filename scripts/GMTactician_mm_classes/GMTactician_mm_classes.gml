@@ -231,7 +231,7 @@ function MmTree(state, maxDepth) constructor {
 	///@func getBestMoveSequence(n)
 	///@param {real} n (Optional) Maximum number of moves after the root state to read
 	///@desc Return an array of moves that the Minimax tree believes is optimal for all players.
-	static getBestMoveSequence = function(n) {
+	static getBestMoveSequence = function(n=infinity) {
 		var _sequence = [];
 		var _currentNode = root;
 		var ii = 0;
@@ -247,7 +247,7 @@ function MmTree(state, maxDepth) constructor {
 	///@func getRankedMoves(n)
 	///@param {real} n (Optional) Maximum number of different moves to consider
 	///@desc Return an array of moves, ranked top-to-bottom by how good the Minimax tree thinks it is
-	static getRankedMoves = function(n) {
+	static getRankedMoves = function(n=infinity) {
 		var _children = root.children;
 		var _polarity = root.polarity;
 		if (is_undefined(_children)) return [];
@@ -269,8 +269,9 @@ function MmTree(state, maxDepth) constructor {
 	///@func getRankedMovesVerbose(n)
 	///@param {real} n (Optional) Maximum number of different moves to consider
 	///@desc Return a 2D array of moves and associated properties; each row is [<move>, <score>]
-	static getRankedMovesVerbose = function(n) {
+	static getRankedMovesVerbose = function(n=infinity) {
 		var _children = root.children;
+		var _polarity = root.polarity;
 		if (is_undefined(_children)) return [];
 		var _childrenN = array_length(_children);
 		var _nRankings = min(n, _childrenN);
@@ -281,7 +282,7 @@ function MmTree(state, maxDepth) constructor {
 			ds_priority_add(pq, [_child.move, _child.value], _child.value);
 		}
 		for (var i = 0; i < _nRankings && !ds_priority_empty(pq); ++i) {
-			_rankings[@i] = ds_priority_delete_max(pq);
+			_rankings[@i] = _polarity ? ds_priority_delete_max(pq) : ds_priority_delete_min(pq);
 		}
 		ds_priority_destroy(pq);
 		return _rankings;
