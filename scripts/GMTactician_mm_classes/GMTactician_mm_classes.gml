@@ -202,10 +202,10 @@ function MmTree(state, maxDepth) constructor {
 	///@func _getBestChild(node)
 	///@param {Struct.MmNode} node
 	///@desc Return the best child node of the given node.
-	static _getBestChild = function(_node) {
+	static _getBestChild = function(node) {
 		var _bestNode = undefined;
-		var _rootPolarity = _node.polarity;
-		var _rootChildren = _node.children;
+		var _rootPolarity = node.polarity;
+		var _rootChildren = node.children;
 		if (is_array(_rootChildren) && array_length(_rootChildren) > 0) {
 			_bestNode = _rootChildren[0];
 			var _bestValue = _bestNode.value;
@@ -228,17 +228,14 @@ function MmTree(state, maxDepth) constructor {
 		return is_undefined(_bestNode) ? undefined : _bestNode.move;
 	};
 	
-	///@func getBestMoveSequence(<n>)
-	///@param {int|undefined} <n> (Optional) Maximum number of moves after the root state to read
+	///@func getBestMoveSequence(n)
+	///@param {real} n (Optional) Maximum number of moves after the root state to read
 	///@desc Return an array of moves that the Minimax tree believes is optimal for all players.
-	static getBestMoveSequence = function(_n) {
-		if (is_undefined(_n)) {
-			_n = infinity;
-		}
+	static getBestMoveSequence = function(n) {
 		var _sequence = [];
 		var _currentNode = root;
 		var ii = 0;
-		while (_n--) {
+		repeat (n) {
 			var _bestNode = _getBestChild(_currentNode);
 			if (is_undefined(_bestNode)) return _sequence;
 			_sequence[@ii++] = _bestNode.move;
@@ -247,47 +244,43 @@ function MmTree(state, maxDepth) constructor {
 		return _sequence;
 	};
 	
-	///@func getRankedMoves(<n>)
-	///@param {int|undefined} <n> (Optional) Maximum number of different moves to consider
+	///@func getRankedMoves(n)
+	///@param {real} n (Optional) Maximum number of different moves to consider
 	///@desc Return an array of moves, ranked top-to-bottom by how good the Minimax tree thinks it is
-	static getRankedMoves = function(_n) {
+	static getRankedMoves = function(n) {
 		var _children = root.children;
 		var _polarity = root.polarity;
 		if (is_undefined(_children)) return [];
 		var _childrenN = array_length(_children);
-		if (is_undefined(_n)) {
-			_n = _childrenN;
-		}
-		var _rankings = array_create(_n);
+		var _nRankings = min(_childrenN, n)
+		var _rankings = array_create(n);
 		var pq = ds_priority_create();
 		for (var i = _childrenN-1; i >= 0; --i) {
 			var _child = _children[i];
 			ds_priority_add(pq, _child.move, _child.value);
 		}
-		for (var i = 0; i < _n && !ds_priority_empty(pq); ++i) {
+		for (var i = 0; i < _nRankings && !ds_priority_empty(pq); ++i) {
 			_rankings[@i] = _polarity ? ds_priority_delete_max(pq) : ds_priority_delete_min(pq);
 		}
 		ds_priority_destroy(pq);
 		return _rankings;
 	};
 	
-	///@func getRankedMovesVerbose(<n>)
-	///@param {int|undefined} <n> (Optional) Maximum number of different moves to consider
+	///@func getRankedMovesVerbose(n)
+	///@param {real} n (Optional) Maximum number of different moves to consider
 	///@desc Return a 2D array of moves and associated properties; each row is [<move>, <score>]
-	static getRankedMovesVerbose = function(_n) {
+	static getRankedMovesVerbose = function(n) {
 		var _children = root.children;
 		if (is_undefined(_children)) return [];
 		var _childrenN = array_length(_children);
-		if (is_undefined(_n)) {
-			_n = _childrenN;
-		}
-		var _rankings = array_create(_n);
+		var _nRankings = min(n, _childrenN);
+		var _rankings = array_create(_nRankings);
 		var pq = ds_priority_create();
 		for (var i = _childrenN-1; i >= 0; --i) {
 			var _child = _children[i];
 			ds_priority_add(pq, [_child.move, _child.value], _child.value);
 		}
-		for (var i = 0; i < _n && !ds_priority_empty(pq); ++i) {
+		for (var i = 0; i < _nRankings && !ds_priority_empty(pq); ++i) {
 			_rankings[@i] = ds_priority_delete_max(pq);
 		}
 		ds_priority_destroy(pq);
